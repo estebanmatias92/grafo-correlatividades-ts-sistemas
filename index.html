@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Grafo de Correlatividades - Validación de Selecciones</title>
+    <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
+    <style>
+      html,
+      body {
+        background-color: #282c34; /* Atom One Dark: fondo principal */
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #cy {
+        width: 100%;
+        height: 100%;
+      }
+      body {
+        font-family: Arial, sans-serif;
+      }
+      /* Estilo por defecto para nodos */
+      #cy node {
+        background-color: #5a8dee;
+        label: data(label);
+        text-valign: center;
+        text-halign: center;
+        color: #fff;
+        font-size: 10px;
+        text-wrap: wrap;
+        text-max-width: 100px;
+        border-width: 2px;
+        shape: round-rectangle;
+        width: 120px;
+        height: 40px;
+      }
+      /* Estilo por defecto para aristas */
+      #cy edge {
+        width: 2px;
+        line-color: #888;
+        target-arrow-color: #888;
+        target-arrow-shape: triangle;
+        curve-style: straight;
+      }
+      /* Nodos/aristas atenuados (faded) con opacidad 0.4 */
+      #cy .faded {
+        opacity: 0.4;
+      }
+      /* Nodo seleccionado completo (verde) */
+      #cy .selected-complete {
+        background-color: #66bb6a;
+        border-color: #2e7d32;
+      }
+      /* Nodo seleccionado incompleto (rojo) */
+      #cy .selected-incomplete {
+        background-color: #ef5350;
+        border-color: #b71c1c;
+      }
+      /* Arista en foco (resaltada) */
+      #cy .edge-focus {
+        line-color: #ff7043;
+        target-arrow-color: #ff7043;
+        width: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cy"></div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // -------------------- //
+        // Definición de NODOS //
+        // -------------------- //
+        const nodos = [
+          { id: "Ingles_I", label: "Inglés I", pos: [100, 100] },
+          {
+            id: "Ciencia_Tecnologia_y_Sociedad",
+            label: "Ciencia, Tecnología y Sociedad",
+            pos: [240, 100],
+          },
+          {
+            id: "Analisis_Matematico_I",
+            label: "Análisis Matemático I",
+            pos: [380, 100],
+          },
+          { id: "Algebra", label: "Álgebra", pos: [520, 100] },
+          {
+            id: "Algoritmos_ED_I",
+            label: "Algoritmos y Estructuras de Datos I",
+            pos: [660, 100],
+          },
+          {
+            id: "Sistemas_y_Organizaciones",
+            label: "Sistemas y Organizaciones",
+            pos: [800, 100],
+          },
+          {
+            id: "Arquitectura_de_Computadores",
+            label: "Arquitectura de Computadores",
+            pos: [940, 100],
+          },
+          {
+            id: "Practicas_Profesionalizantes_I",
+            label: "Prácticas Profesionalizantes I",
+            pos: [1080, 100],
+          },
+
+          { id: "Ingles_II", label: "Inglés II", pos: [100, 300] },
+          {
+            id: "Analisis_Matematico_II",
+            label: "Análisis Matemático II",
+            pos: [240, 300],
+          },
+          { id: "Estadistica", label: "Estadística", pos: [380, 300] },
+          {
+            id: "Ingenieria_Software_I",
+            label: "Ingeniería de Software I",
+            pos: [520, 300],
+          },
+          {
+            id: "Algoritmos_ED_II",
+            label: "Algoritmos y Estructuras de Datos II",
+            pos: [660, 300],
+          },
+          {
+            id: "Sistemas_Operativos",
+            label: "Sistemas Operativos",
+            pos: [800, 300],
+          },
+          { id: "Base_de_Datos", label: "Base de Datos", pos: [940, 300] },
+          {
+            id: "Practicas_Profesionalizantes_II",
+            label: "Prácticas Profesionalizantes II",
+            pos: [1080, 300],
+          },
+
+          { id: "Ingles_III", label: "Inglés III", pos: [100, 500] },
+          {
+            id: "Aspectos_Legales_de_la_Profesion",
+            label: "Aspectos Legales de la Profesión",
+            pos: [240, 500],
+          },
+          {
+            id: "Redes_y_Comunicaciones",
+            label: "Redes y Comunicaciones",
+            pos: [380, 500],
+          },
+          {
+            id: "Seminario_de_Actualizacion",
+            label: "Seminario de Actualización",
+            pos: [520, 500],
+          },
+          {
+            id: "Ingenieria_Software_II",
+            label: "Ingeniería de Software II",
+            pos: [660, 500],
+          },
+          {
+            id: "Algoritmos_ED_III",
+            label: "Algoritmos y Estructuras de Datos III",
+            pos: [800, 500],
+          },
+          {
+            id: "Practicas_Profesionalizantes_III",
+            label: "Prácticas Profesionalizantes III",
+            pos: [940, 500],
+          },
+        ];
+
+        // ---------------------- //
+        // Definición de ARISTAS  //
+        // ---------------------- //
+        // Cada par [origen, destino] representa "origen" → "destino"
+        const edges = [
+          ["Ingles_I", "Ingles_II"],
+          ["Ingles_II", "Ingles_III"],
+          ["Analisis_Matematico_I", "Analisis_Matematico_II"],
+          ["Algebra", "Analisis_Matematico_II"],
+          ["Analisis_Matematico_I", "Estadistica"],
+          ["Algebra", "Estadistica"],
+          ["Algoritmos_ED_I", "Algoritmos_ED_II"],
+          ["Algoritmos_ED_I", "Base_de_Datos"],
+          ["Algoritmos_ED_II", "Algoritmos_ED_III"],
+          ["Analisis_Matematico_I", "Algoritmos_ED_III"],
+          ["Sistemas_y_Organizaciones", "Ingenieria_Software_I"],
+          ["Ingenieria_Software_I", "Ingenieria_Software_II"],
+          ["Sistemas_y_Organizaciones", "Practicas_Profesionalizantes_II"],
+          ["Ingenieria_Software_I", "Practicas_Profesionalizantes_III"],
+          ["Algoritmos_ED_II", "Practicas_Profesionalizantes_III"],
+          ["Base_de_Datos", "Practicas_Profesionalizantes_III"],
+          ["Practicas_Profesionalizantes_I", "Practicas_Profesionalizantes_II"],
+          [
+            "Practicas_Profesionalizantes_II",
+            "Practicas_Profesionalizantes_III",
+          ],
+          ["Arquitectura_de_Computadores", "Sistemas_Operativos"],
+          ["Sistemas_Operativos", "Redes_y_Comunicaciones"],
+        ];
+
+        // ---------------------------- //
+        // Inicialización de Cytoscape  //
+        // ---------------------------- //
+        const cy = cytoscape({
+          container: document.getElementById("cy"),
+          elements: [
+            // Transformar nodos a formato Cytoscape
+            ...nodos.map((n) => ({
+              data: { id: n.id, label: n.label },
+              position: { x: n.pos[0], y: n.pos[1] },
+            })),
+            // Transformar aristas a formato Cytoscape
+            ...edges.map(([src, dst]) => ({
+              data: { source: src, target: dst },
+            })),
+          ],
+          style: [
+            {
+              selector: "node",
+              style: {
+                "background-color": "#5A8DEE",
+                label: "data(label)",
+                "text-valign": "center",
+                "text-halign": "center",
+                color: "#fff",
+                "font-size": "10px",
+                "text-wrap": "wrap",
+                "text-max-width": "100px",
+                "border-width": 2,
+                shape: "round-rectangle",
+                width: "120px",
+                height: "40px",
+              },
+            },
+            {
+              selector: "edge",
+              style: {
+                width: 2,
+                "line-color": "#888",
+                "target-arrow-shape": "triangle",
+                "target-arrow-color": "#888",
+                "curve-style": "straight",
+              },
+            },
+            {
+              selector: ".faded",
+              style: { opacity: 0.4 },
+            },
+            {
+              selector: ".selected-complete",
+              style: {
+                "background-color": "#66BB6A",
+                "border-color": "#2E7D32",
+              },
+            },
+            {
+              selector: ".selected-incomplete",
+              style: {
+                "background-color": "#EF5350",
+                "border-color": "#B71C1C",
+              },
+            },
+            {
+              selector: ".edge-focus",
+              style: {
+                "line-color": "#FF7043",
+                "target-arrow-color": "#FF7043",
+                width: 3,
+              },
+            },
+          ],
+          layout: { name: "preset" },
+        });
+
+        // Colección de nodos actualmente seleccionados
+        let seleccionadas = cy.collection();
+
+        // --------------------------------------------------------- //
+        // Función para recalcular estilos según nodos seleccionados //
+        // --------------------------------------------------------- //
+        function actualizarColores() {
+          // Colección "foco" contendrá prerrequisitos y sucesores de todos los seleccionados
+          let foco = cy.collection();
+
+          seleccionadas.forEach((node) => {
+            foco = foco.union(node.predecessors()).union(node.successors());
+          });
+
+          // Aristas que unen nodos dentro de "foco"
+          const edgeFocus = cy
+            .edges()
+            .filter(
+              (edge) => foco.has(edge.source()) && foco.has(edge.target())
+            );
+
+          // Limpiar cualquier clase previa de todos los elementos
+          cy.elements().removeClass(
+            "faded selected-complete selected-incomplete edge-focus"
+          );
+
+          // Para cada nodo en "seleccionadas", determinar si todos sus prerrequisitos están marcados
+          seleccionadas.forEach((node) => {
+            const prereqs = node.incomers("node"); // nodos de donde recibe flecha
+            const todosEnSeleccion = prereqs.every((p) => seleccionadas.has(p));
+            if (todosEnSeleccion) {
+              node.addClass("selected-complete");
+            } else {
+              node.addClass("selected-incomplete");
+            }
+          });
+
+          // Resaltar las aristas en "foco"
+          edgeFocus.addClass("edge-focus");
+
+          // Atenuar (faded) todos los elementos que NO estén en seleccionadas, foco ni edgeFocus
+          cy.elements()
+            .difference(seleccionadas.union(foco).union(edgeFocus))
+            .addClass("faded");
+        }
+
+        // ------------------------------------------------------------ //
+        // Manejo del evento de clic en un nodo (incluye toggling)     //
+        // ------------------------------------------------------------ //
+        cy.on("tap", "node", function (evt) {
+          const node = evt.target;
+          const yaSeleccionado = seleccionadas.has(node);
+
+          if (evt.originalEvent.altKey) {
+            // Alt + clic: agrego o quito de la selección múltiple
+            if (yaSeleccionado) {
+              seleccionadas = seleccionadas.difference(node);
+            } else {
+              seleccionadas = seleccionadas.union(node);
+            }
+          } else {
+            // Clic simple:
+            if (yaSeleccionado && seleccionadas.size() === 1) {
+              // Si ya era el único seleccionado, quitar selección (deseleccionar)
+              seleccionadas = cy.collection();
+            } else {
+              // Seleccionar solo ese nodo (selección individual)
+              seleccionadas = cy.collection([node]);
+            }
+          }
+
+          actualizarColores();
+        });
+
+        // ------------------------------------------------ //
+        // Manejo del evento de clic en el fondo para reset //
+        // ------------------------------------------------ //
+        cy.on("tap", function (evt) {
+          if (evt.target === cy) {
+            // Clic en el fondo: quita toda selección y remueve clases
+            seleccionadas = cy.collection();
+            cy.elements().removeClass(
+              "faded selected-complete selected-incomplete edge-focus"
+            );
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
